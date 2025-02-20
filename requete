@@ -1,0 +1,96 @@
+-- Requete 1
+
+SELECT D.libelle AS nom_departement
+FROM departement D
+JOIN indice_social S ON D.dep = S.Departement
+AND LOWER(S.Indicateur) = LOWER('Pauvrete')
+AND S.Valeur >= 15 
+AND S.Valeur <= 20
+AND S.Annee = 2018
+ORDER BY S.Valeur DESC;
+
+-- Requete 2
+
+SELECT D.libelle AS nom_departement, E2.Valeur AS taux_activite_2017
+FROM departement D
+
+JOIN indice_economie E1 ON D.reg = E1.Region
+    AND E1.Annee = 2014
+    AND LOWER(E1.Indicateur) = LOWER('Recherche_Developpement')
+
+JOIN indice_economie E2 ON D.dep = E2.Departement
+    AND E2.Annee = 2017
+    AND LOWER(E2.Indicateur) = LOWER('Taux_Activite')
+
+WHERE E1.Valeur > 2;
+
+
+-- Requete 3
+
+SELECT D.libelle AS nom_departement, (SH.Valeur - SF.Valeur) AS difference_esperance_vie
+FROM departement D
+JOIN (SELECT Region, Valeur
+    FROM indice_social
+    WHERE Region NOTNULL
+    AND Annee = 2018 AND Indicateur = 'Pauvrete' AND Valeur NOTNULL
+    ORDER BY Valeur DESC LIMIT 1) AS MaxPauvrete 
+    ON D.reg = MaxPauvrete.Region
+
+JOIN indice_social SH ON D.dep = SH.Departement
+    AND SH.Annee = 2019
+    AND LOWER(SH.Indicateur) = LOWER('Esperence_de_vie_Homme')
+
+JOIN indice_social SF ON D.dep = SF.Departement
+    AND SF.Annee = 2019
+    AND LOWER(SF.Indicateur) = LOWER('Esperence_de_vie_Femme');
+
+
+-- Requete 4
+
+SELECT D.libelle AS nom_departement, P.Valeur AS estimation_population_2020
+FROM departement D
+JOIN indice_social S ON D.dep = S.Departement
+    AND S.Annee = 2020
+    AND S.Indicateur = 'Disparite'
+
+JOIN population P ON D.dep = P.Departement
+    AND P.Annee = 2020
+
+WHERE S.Valeur >= 3.5;
+
+
+-- Requete 5
+
+SELECT R.libelle AS nom_region,
+        S_hommes_2019.Valeur AS esperance_vie_hommes_2019,
+        S_femmes_2019.Valeur AS esperance_vie_femmes_2019,
+        S_hommes_2022.Valeur AS esperance_vie_hommes_2022,
+        S_femmes_2022.Valeur AS esperance_vie_femmes_2022
+
+FROM region R
+
+JOIN indice_economie E ON R.reg = E.Region
+    AND E.Annee = 2019
+    AND LOWER(E.Indicateur) = LOWER('Taux_Activite')
+
+JOIN indice_social S ON R.reg = S.Region
+    AND S.Annee = 2021
+    AND LOWER(S.Indicateur) = LOWER('Eloignement_7mn_Sante')
+
+JOIN indice_social S_hommes_2019 ON R.reg = S_hommes_2019.Region
+    AND S_hommes_2019.Annee = 2019
+    AND LOWER(S_hommes_2019.Indicateur) = LOWER('Esperence_de_vie_Homme')
+
+JOIN indice_social S_femmes_2019 ON R.reg = S_femmes_2019.Region
+    AND S_femmes_2019.Annee = 2019
+    AND LOWER(S_femmes_2019.Indicateur) = LOWER('Esperence_de_vie_Femme')
+
+JOIN indice_social S_hommes_2022 ON R.reg = S_hommes_2022.Region
+    AND S_hommes_2022.Annee = 2022
+    AND LOWER(S_hommes_2022.Indicateur) = LOWER('Esperence_de_vie_Homme')
+
+JOIN indice_social S_femmes_2022 ON R.reg = S_femmes_2022.Region
+    AND S_femmes_2022.Annee = 2022
+    AND LOWER(S_femmes_2022.Indicateur) = LOWER('Esperence_de_vie_Femme')
+
+WHERE E.Valeur > 75 AND S.Valeur < 5;
