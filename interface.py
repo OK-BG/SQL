@@ -88,9 +88,8 @@ def afficher_annees(session, departement_choisi) :
 
     if df.empty:
         print("Donnees non disponibles")
-        return
+        return 1
     print(f"\nAnnees disponibles pour le département {departement_choisi} :\n {df['Annee'].tolist()}")
-
 
 def afficher_population(session, departement, annee):
     query = text(f"""
@@ -215,13 +214,14 @@ def menu_principal():
             while True:
                 annee = input("Souhaitez vous afficher la liste des annees disponibles (o/n) ? ")
                 if annee == 'o' :
-                    afficher_annees(session, departement_choisi)
+                    res = afficher_annees(session, departement_choisi)
                     break
                 if annee == "n":
+                    res = None
                     break
-
-            annee_choisie = input("Entrez l'annee: ")
-            afficher_population(session, departement_choisi, annee_choisie)
+            if not res:
+                annee_choisie = input("Entrez l'annee: ")
+                afficher_population(session, departement_choisi, annee_choisie)
         
         elif choix == 5:
             if not departement_choisi:
