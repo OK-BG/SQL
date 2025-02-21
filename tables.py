@@ -23,7 +23,7 @@ def detect_sql_type(series):
         return "TEXT"
 
 def generate_create_table_sql(file_path, table_name, primary_key):
-    """GenÃ¨re et execute une requÃªte CREATE TABLE et retourne les colonnes valides pour l'insertion."""
+    """Genere et execute une requete CREATE TABLE et retourne les colonnes valides pour l'insertion."""
     df = pd.read_csv(file_path, sep=',')
     df.columns = df.columns.str.lower()
 
@@ -33,7 +33,7 @@ def generate_create_table_sql(file_path, table_name, primary_key):
     for column in df.columns:
         sql_type = detect_sql_type(df[column])
         column_def = f'"{column}" {sql_type}'
-        if column == primary_key and sql_type == "INTEGER":
+        if column == primary_key:
             column_def += " PRIMARY KEY"
         columns_definitions.append(column_def)
         valid_columns.append(column)
@@ -59,7 +59,7 @@ for file_path, (table, primary_key) in files.items():
     df_filtered, valid_columns = generate_create_table_sql(file_path, table, primary_key)
 
     if df_filtered is not None and not df_filtered.empty:
-        # Generation de la requÃªte d'insertion avec les colonnes valides
+        # Generation de la requete d'insertion avec les colonnes valides
         columns_sql = ", ".join([f'"{col}"' for col in valid_columns])
         values_placeholder = ", ".join(["?"] * len(valid_columns))
         insert_query = f"INSERT INTO {table} ({columns_sql}) VALUES ({values_placeholder})"
@@ -214,8 +214,8 @@ def create_table(table_name, cur):
     cur.execute(f"""
     CREATE TABLE IF NOT EXISTS {table_name} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        Region CHAR(5),
-        Departement CHAR(5),
+        Region INTEGER,
+        Departement TEXT,
         Indicateur VARCHAR(50),
         Annee INT NOT NULL,
         Valeur REAL,
@@ -238,14 +238,16 @@ def insert_elements(dataframe, table_name, cur):
     data = [result for row in dataframe.itertuples(index=False) if (result := process_row(row)) is not None]
 
     if data:
-        for result in data:
-            if result[1] == "Region":  # result[1] correspond à Type_Geo
+        for result in data: # (r[0] = Dep/Reg, r[1] = Type_Geo, r[2] = Indicateur, r[3] = Annee, r[4] = Valeur)
+            if result[0] in ["M", "F"]:
+                continue
+            if result[1] == "Region":
                 command = f'INSERT INTO {table_name} (Region, Departement, Indicateur, Annee, Valeur) VALUES (?,NULL,?,?,?)'
             else:
                 command = f'INSERT INTO {table_name} (Region, Departement, Indicateur, Annee, Valeur) VALUES (NULL,?,?,?,?)'
             
             if result[2] == "Population":
-                values = (result[0], result[2], result[3], result[4]*1000) # (Dep/Reg, Indicateur, Annee, Valeur)
+                values = (result[0], result[2], result[3], result[4]*1000)
             else:
                 values = (result[0], result[2], result[3], result[4])  
             cur.execute(command, values)
