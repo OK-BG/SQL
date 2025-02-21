@@ -81,7 +81,7 @@ def afficher_annees(session, departement_choisi) :
     query = text(f"""
         SELECT DISTINCT Annee 
         FROM population 
-        WHERE {departement_choisi} = Departement 
+        WHERE '{departement_choisi}' = Departement 
         ORDER BY Annee
     """)
     df = execute_query(session, query, {'departement': departement_choisi})
@@ -96,7 +96,7 @@ def afficher_population(session, departement, annee):
     query = text(f"""
         SELECT * 
         FROM population 
-        WHERE Departement = {departement} AND Annee = {annee}
+        WHERE Departement = '{departement}' AND Annee = {annee}
     """)
     df = execute_query(session, query, {'departement': departement, 'annee': annee})
     if df.empty:
@@ -109,6 +109,7 @@ def afficher_population(session, departement, annee):
         print(f"{row['Indicateur']} : {row['Valeur']} milliers d'habitants.")
 
 
+
 def afficher_donnees_theme(session, departement, annee, theme):
     if theme == 'social':
         table = 'indice_social'  
@@ -118,7 +119,7 @@ def afficher_donnees_theme(session, departement, annee, theme):
     query = text(f"""
         SELECT indicateur, valeur 
         FROM {table} 
-        WHERE Departement = {departement} AND Annee = {annee}
+        WHERE Departement = '{departement}' AND Annee = {annee}
     """)
     df = execute_query(session, query, {'departement': departement, 'annee': annee})
 
@@ -197,6 +198,9 @@ def menu_principal():
                     break
 
             departement_choisi = input("Entrez le code du departement : ")
+            if len(departement_choisi) == 1:
+                departement_choisi = "0" + departement_choisi
+            print(departement_choisi)
             print("Les annees disponibles sont : ")
             afficher_annees(session, departement_choisi)
             
@@ -230,6 +234,8 @@ def menu_principal():
             while theme not in ["social", "economique"]:
                 theme = input("Veuillez choisir un theme valide (social/economique): ")
             themeNorm = accent(theme)
+            if departement_choisi[0] == "0":
+                departement_choisi = int(departement_choisi[1])
             afficher_donnees_theme(session, departement_choisi, annee_choisie, themeNorm)
         
     
