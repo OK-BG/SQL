@@ -1,3 +1,50 @@
+########################################################################################################################################
+########################################    PROJET INSEE               ##################################################################
+########################################    Autheur : Tom Bourachot    ##################################################################
+########################################              Marion Turgault  ##################################################################
+########################################    Date : 18/02/2024          ##################################################################
+#########################################################################################################################################
+
+### IMPORTATION DES LIBRAIRIES
+import pandas as pd
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+
+
+# Fonction pour se connecter a la base de donnee avec sqlAlchemy
+def connect_to_db(username, password):
+    print('Connexion a la base de donnees...')
+    try:
+        engine = create_engine(f'postgresql://{username}:{password}@pgsql/{username}')
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        print("Connecte a la base de donnees")
+        return session
+    except Exception as e:
+        print("Connexion impossible a la base de donnees: " + str(e))
+        return None
+
+# Fonction pour executer les requetes
+def execute_query(session, query, description):
+    print(description)
+    try:
+        result = session.execute(query)  # execution de la requete
+        df = pd.DataFrame(result.fetchall(), columns=result.keys()) # stockage des resultats dans un dataframe pour une meilleure manipulation des donnees
+        print(df.to_string(index=False)) # Affichage du dataframe
+        print("\n")
+        return df
+    except Exception as e:  # gestion des erreurs avec exept
+        print(f"Erreur lors de l'execution de la requÃªte : {e}")  
+        return pd.DataFrame()
+
+### CONNEXION A LA BASE DE DONNEES
+USERNAME="mturgault"
+PASSWORD="Azerty@123!" 
+session = connect_to_db(USERNAME, PASSWORD)
+
+
+
+################    INTERROGATION DE LA BASE DE DONNEES    #################################
 def ecrire(requete_description, dataframe):
     with open("requetes.txt", "a") as fic:  # Ouvrir le fichier en mode ajout
         fic.write(requete_description + "\n")  # Écrire la description de la requête
@@ -7,6 +54,7 @@ def ecrire(requete_description, dataframe):
 
 ################    INTERROGATION DE LA BASE DE DONNEES    #################################
 # Si une connexion à la base de données a été trouvée, on lance les requêtes
+
 if session: 
     ### REQUETE 1 
     query1 = text("""SELECT D.libelle AS nom_departement
