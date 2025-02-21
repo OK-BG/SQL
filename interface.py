@@ -101,8 +101,12 @@ def afficher_population(session, departement, annee):
     df = execute_query(session, query, {'departement': departement, 'annee': annee})
     if df.empty:
         print("Donnees non disponibles")
-    else:
-        print(df)
+        return
+    
+    for _, row in df.iterrows():
+        print("")
+        print(f"Population pour l'annee {row['Annee']} du departement {row['Departement']} : ")
+        print(f"{row['Indicateur']} : {row['Valeur']} milliers d'habitants.")
 
 
 def afficher_donnees_theme(session, departement, annee, theme):
