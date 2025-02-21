@@ -33,7 +33,7 @@ def execute_query(session, query, params=None):
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
         return df
     except Exception as e:
-        print(f"Erreur lors de l'execution de la requÃªte : {e}")
+        print(f"Erreur lors de l'execution de la requete : {e}")
         return pd.DataFrame()
     
 
@@ -69,12 +69,14 @@ def afficher_regions(session):
     query = text("SELECT libelle AS nom_region, reg AS code_region FROM region ORDER BY reg")
     df = execute_query(session, query)
     return df
-    
+
+
 def afficher_departements(session, region_choisie):
     query = text("SELECT libelle AS nom_departement, dep AS code_departement FROM Departement WHERE reg = :region ORDER BY dep")
     df = execute_query(session, query, {'region':region_choisie})
     return df
-    
+
+
 def afficher_annees(session, departement_choisi) :
     query = text(f"""
         SELECT DISTINCT Annee 
@@ -83,7 +85,11 @@ def afficher_annees(session, departement_choisi) :
         ORDER BY Annee
     """)
     df = execute_query(session, query, {'departement': departement_choisi})
-    print(df)
+
+    if df.empty:
+        print("Donnees non disponibles")
+        return
+    print(f"\nAnnees disponibles pour le département {departement_choisi} :\n {df['Annee'].tolist()}")
 
 
 def afficher_population(session, departement, annee):
@@ -97,7 +103,8 @@ def afficher_population(session, departement, annee):
         print("Donnees non disponibles")
     else:
         print(df)
-        
+
+
 def afficher_donnees_theme(session, departement, annee, theme):
     if theme == 'social':
         table = 'indice_social'  
@@ -110,7 +117,14 @@ def afficher_donnees_theme(session, departement, annee, theme):
         WHERE Departement = {departement} AND Annee = {annee}
     """)
     df = execute_query(session, query, {'departement': departement, 'annee': annee})
-    print(df)
+
+    if df.empty:
+        print("Aucun indicateur trouvé pour ce département et cette année.")
+        return
+
+    print(f"\nIndicateurs pour le département {departement} en {annee} :\n")
+    for _, row in df.iterrows():
+        print(f"{row['Indicateur']} : {row['Valeur']}%.")
     
     
     
@@ -143,30 +157,44 @@ def menu_principal():
     
     while True:
         menu()
-        choix=int(input("Veuillez saisir votre choix (de 0 a 5): "))
-        
+        choix=input("Veuillez saisir votre choix (de 0 a 5): ")
+        while choix not in ["0", "1", "2", "3", "4", "5"]:
+            choix=input("Veuillez saisir votre choix (de 0 a 5): ")
+        choix = int(choix)
+
         if choix == 0:
             break
         
         elif choix == 1:
-            print("Voici la liste des region :" , afficher_regions(session))
+            print("Voici la liste des regions :\n" , afficher_regions(session))
         
         elif choix == 2:
-            region = input("Souhaitez vous afficher la liste des regions (o/n) ? ")
-            if region == 'o' :
-                print(afficher_regions(session))
+            while True:
+                region = input("Souhaitez vous afficher la liste des regions (o/n) ? ")
+                if region == 'o' :
+                    print(afficher_regions(session))
+                    break
+                if region == 'n' :
+                    break
+
             region_choisie = input("Entrez le code de la region : ")
-            print("Voici la liste des departement associe a la region ", region_choisie, " :", afficher_departements(session, region_choisie))
+            print("Voici la liste des departements associes a la region ", region_choisie, " : \n", afficher_departements(session, region_choisie))
         
         elif choix == 3:
             if not region_choisie:
                 print("Veuillez d'abord choisir une region  (choix n°2).")
                 continue
-            departement = input("Souhaitez vous afficher la liste des departements (o/n) ? ")
-            if departement == 'o' :
-                print("Liste des departements de la region ", region_choisie, " : ", afficher_departements(session, region_choisie))
+            while True:
+                departement = input("Souhaitez vous afficher la liste des departements (o/n) ? ")                
+                if departement == 'o' :
+                    print("Liste des departements de la region ", region_choisie, " : \n", afficher_departements(session, region_choisie))
+                    break
+                if departement == 'n' :
+                    break
+
             departement_choisi = input("Entrez le code du departement : ")
-            print("Les annees disponible pour le departement ", departement_choisi, " sont : ", afficher_annees(session, departement_choisi))
+            print("Les annees disponibles sont : ")
+            afficher_annees(session, departement_choisi)
             
         elif choix == 4:
             if not region_choisie:
@@ -175,9 +203,15 @@ def menu_principal():
             if not departement_choisi:
                 print("Veuillez d'abord choisir un departement (choix n°3).")
                 continue
-            annee = input("Souhaitez vous afficher la liste des annees disponibles (o/n) ? ")
-            if annee == 'o' :
-                print("Liste des annees disponible pour le departement ", departement_choisi, " de la region ", region_choisie, " sont : " , afficher_annees(session, departement_choisi))
+
+            while True:
+                annee = input("Souhaitez vous afficher la liste des annees disponibles (o/n) ? ")
+                if annee == 'o' :
+                    afficher_annees(session, departement_choisi)
+                    break
+                if annee == "n":
+                    break
+
             annee_choisie = input("Entrez l'annee: ")
             afficher_population(session, departement_choisi, annee_choisie)
         
@@ -188,12 +222,12 @@ def menu_principal():
             if not annee_choisie:
                 print("Veuillez d'abord choisir une annee (choix n°4).")
                 continue
-            theme = input("Choisissez le thÃ¨me (social/economique): ")
+            theme = input("Choisissez le theme (social/economique): ")
+            while theme not in ["social", "economique"]:
+                theme = input("Veuillez choisir un theme valide (social/economique): ")
             themeNorm = accent(theme)
             afficher_donnees_theme(session, departement_choisi, annee_choisie, themeNorm)
         
-        else :
-            print("Choix invalide, Veillez reessayer ou quitter.")
     
     # Fermeture de la session
     session.commit()
