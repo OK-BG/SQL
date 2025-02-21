@@ -66,7 +66,7 @@ if session:
         AND S.Annee = 2018
         ORDER BY S.Valeur DESC;""")
     df1 = execute_query(session, query1, "REQUETE 1 : Departements ou le taux de pauvrete en 2018 etait compris entre 15% et 20 % (par ordre decroissant) : ")
-    ecrire("REQUETE 1 : Departements où le taux de pauvreté en 2018 était compris entre 15% et 20% :", df1)
+    ecrire("REQUETE 1 : Departements où le taux de pauvreté en 2018 était compris entre 15% et 20% (par ordre decroissant) :", df1)
 
     ### REQUETE 2 
     query2 = text("""SELECT D.libelle AS nom_departement, E2.Valeur AS taux_activite_2017
@@ -82,7 +82,7 @@ if session:
 
         WHERE E1.Valeur > 2;""")
     df2 = execute_query(session, query2, "REQUETE 2 : Departements dont la region avait un effort de recherche et developpement strictement superieur a 2 % en 2014 : ")
-    ecrire("REQUETE 2 : Departements dont la région avait un effort de recherche et développement strictement supérieur à 2 % en 2014 :", df2)
+    ecrire("REQUETE 2 : Departements dont la région avait un effort de recherche et développement strictement supérieur à 2 % en 2014 avec leur taux d'activite en 2017:", df2)
 
     ### REQUETE 3 
     query3 = text("""SELECT D.libelle AS nom_departement, (SH.Valeur - SF.Valeur) AS difference_esperance_vie
@@ -103,7 +103,7 @@ if session:
             AND LOWER(SF.Indicateur) = LOWER('Esperence_de_vie_Femme');
 """)
     df3 = execute_query(session, query3, "REQUETE 3 : Difference entre l'esperance de vie des hommes et des femmes en 2019 pour tous les departements de la region ayant le plus grand taux de pauvrete en 2018 : ")
-    ecrire("REQUETE 3 : Différence entre l'espérance de vie des hommes et des femmes en 2019 :", df3)
+    ecrire("REQUETE 3 : Différence entre l'espérance de vie des hommes et des femmes en 2019 pour les departements dont la region avait le plus grand taux de pauvrete en 2018 :", df3)
 
     ### REQUETE 4
     query4 = text("""SELECT D.libelle AS nom_departement, P.Valeur AS estimation_population_2020
@@ -117,7 +117,7 @@ if session:
 
         WHERE S.Valeur >= 3.5;""")
     df4 = execute_query(session, query4, "REQUETE 4 : Estimation de population en 2020 de tous les departements ou la disparite de niveau de vie >=3,5 : ")
-    ecrire("REQUETE 4 : Estimation de population en 2020 :", df4)
+    ecrire("REQUETE 4 : Estimation de population en 2020 de tous les departements ou la disparite de niveau de vie >=3,5 :", df4)
 
     ### REQUETE 5 
     query5 = text("""SELECT R.libelle AS nom_region,
@@ -155,7 +155,7 @@ if session:
         WHERE E.Valeur > 75 AND S.Valeur < 5;
 """)
     df5 = execute_query(session, query5, "REQUETE 5 : Esperance de vie des femmes et des hommes en 2019 et en 2022 : ")
-    ecrire("REQUETE 5 : Espérance de vie des femmes et des hommes en 2019 et en 2022 :", df5)
+    ecrire("REQUETE 5 : Espérance de vie des femmes et des hommes en 2019 et en 2022 dans les régions où le taux d’activité était >75% en 2019 et où la Part de la population éloignée de plus de 7 mn des services de santé de proximité était de moins de 5% en 2021 :", df5)
 
 
 
