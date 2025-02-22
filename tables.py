@@ -1,11 +1,3 @@
-########################################################################################################################################
-########################################    PROJET INSEE               ##################################################################
-########################################    Autheur : Tom Bourachot    ##################################################################
-########################################              Marion Turgault  ##################################################################
-########################################    Date : 18/02/2024          ##################################################################
-#########################################################################################################################################
-
-# -- Import des librairies --
 import pandas as pd
 import psycopg2
 import psycopg2.extras
@@ -178,7 +170,7 @@ reg_variation.loc[:, "Type_Geo"] = "Region"
 
 # Transformation et assemblage des dataframes
 
-def assemblage_dataframe(dataframe):
+def melt_dataframe(dataframe):
     return dataframe.melt(
         id_vars=["Id_Geo", "Nom", "Type_Geo"],
         var_name="Indicateur",
@@ -186,7 +178,7 @@ def assemblage_dataframe(dataframe):
     )
 
 # Concaténer deux DataFrames
-def concat_dataframe(df_1, df_2):
+def concatenate_dataframes(df_1, df_2):
     return pd.concat([df_1, df_2], ignore_index=True)
 
 # Remplacer les valeurs manquantes par None
@@ -196,24 +188,24 @@ def remove_null(dataframe):
 
 
 # Transformation des DataFrames sociaux et économiques
-dep_long = assemblage_dataframe(dep_social)
-reg_long = assemblage_dataframe(reg_social)
-socials_df = concat_dataframe(dep_long, reg_long)
+dep_long = melt_dataframe(dep_social)
+reg_long = melt_dataframe(reg_social)
+socials_df = concatenate_dataframes(dep_long, reg_long)
 socials_df = remove_null(socials_df)
 
-dep_long = assemblage_dataframe(dep_economie)
-reg_long = assemblage_dataframe(reg_economie)
-economies_df = concat_dataframe(dep_long, reg_long)
+dep_long = melt_dataframe(dep_economie)
+reg_long = melt_dataframe(reg_economie)
+economies_df = concatenate_dataframes(dep_long, reg_long)
 economies_df = remove_null(economies_df)
 
-dep_long = assemblage_dataframe(dep_population)
-reg_long = assemblage_dataframe(reg_population)
-population_df = concat_dataframe(dep_long, reg_long)
+dep_long = melt_dataframe(dep_population)
+reg_long = melt_dataframe(reg_population)
+population_df = concatenate_dataframes(dep_long, reg_long)
 population_df = remove_null(population_df)
 
-dep_long = assemblage_dataframe(dep_variation)
-reg_long = assemblage_dataframe(reg_variation)
-variation_df = concat_dataframe(dep_long, reg_long)
+dep_long = melt_dataframe(dep_variation)
+reg_long = melt_dataframe(reg_variation)
+variation_df = concatenate_dataframes(dep_long, reg_long)
 variation_df = remove_null(variation_df)
 
 # ---- Creation des tables et insertion ----
