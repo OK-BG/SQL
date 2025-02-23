@@ -106,7 +106,7 @@ if session:
     ecrire("REQUETE 3 : Différence entre l'espérance de vie des hommes et des femmes en 2019 pour les departements dont la region avait le plus grand taux de pauvrete en 2018 :", df3)
 
     ### REQUETE 4
-    query4 = text("""SELECT D.libelle AS nom_departement, P.Valeur AS estimation_population_2020
+    query4 = text("""SELECT D.libelle AS nom_departement, P.Population AS estimation_population_2020
         FROM departement D
         JOIN indice_social S ON D.dep = S.Departement
             AND S.Annee = 2020
