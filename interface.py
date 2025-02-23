@@ -37,6 +37,7 @@ def execute_query(session, query, params=None):
         return pd.DataFrame()
     
 
+
 ### FONCTION POUR ELIMINER LES ACCENTS D'UN MOT
 def accent(str):
     tableAccent = {
@@ -74,7 +75,8 @@ def afficher_regions(session):
 def afficher_departements(session, region_choisie):
     query = text("SELECT libelle AS nom_departement, dep AS code_departement FROM Departement WHERE reg = :region ORDER BY dep")
     df = execute_query(session, query, {'region':region_choisie})
-    return df
+    codes_departements = df["code_departement"].tolist()
+    return df, codes_departements
 
 
 def afficher_annees(session, departement_choisi) :
@@ -85,10 +87,10 @@ def afficher_annees(session, departement_choisi) :
         ORDER BY Annee
     """)
     df = execute_query(session, query, {'departement': departement_choisi})
-
     if df.empty:
         print("Donnees non disponibles")
         return 1
+    
     print(f"\nAnnees disponibles pour le département {departement_choisi} :\n {df['Annee'].tolist()}")
 
 def afficher_population(session, departement, annee):
@@ -105,7 +107,9 @@ def afficher_population(session, departement, annee):
     for _, row in df.iterrows():
         print("")
         print(f"Population pour l'annee {row['Annee']} du departement {row['Departement']} : ")
-        print(f"{row['Indicateur']} : {row['Valeur']} milliers d'habitants.")
+        if row["Estimation"] == "oui":
+            print("Estimation : ")
+        print(f"{row['Population']} habitants.")
 
 
 
@@ -123,7 +127,7 @@ def afficher_donnees_theme(session, departement, annee, theme):
     df = execute_query(session, query, {'departement': departement, 'annee': annee})
 
     if df.empty:
-        print("Aucun indicateur trouvé pour ce département et cette année.")
+        print("Aucun indicateur trouvé pour ce département cette année.")
         return
 
     print(f"\nIndicateurs pour le département {departement} en {annee} :\n")
@@ -138,10 +142,10 @@ def menu():
     print("\nMenu :")
     print("1 - Afficher la liste des regions")
     print("2 - Choisir une region et afficher la liste de ses departements")
-    print("3 - Choisir un departement et afficher les annees disponibles")
-    print("4 - Afficher les informations de population pour une annee")
-    print("5 - Afficher les donnees sociales ou economiques")
-    print("0 - Quit")
+    print("3 - Choisir un des departements de la region choisie precedemment et afficher les annees etudiees disponibles")
+    print("4 - Afficher les informations de population du departement choisi precedemment pour une annee")
+    print("5 - Afficher les donnees sociales ou economiques de l'annee choisie")
+    print("0 - Quitter")
     print("-------------------------------------------------------")
     
     
@@ -182,27 +186,33 @@ def menu_principal():
                     break
 
             region_choisie = input("Entrez le code de la region : ")
-            print("Voici la liste des departements associes a la region ", region_choisie, " : \n", afficher_departements(session, region_choisie))
+            res, departements_valides = afficher_departements(session, region_choisie)
+            while res.empty:
+                region_choisie = input("Veuillez selectionner une region valide : ")
+                res, departements_valides = afficher_departements(session, region_choisie)
+            print("Voici la liste des departements associes a la region ", region_choisie, " : \n", res)
         
         elif choix == 3:
             if not region_choisie:
                 print("Veuillez d'abord choisir une region  (choix n°2).")
                 continue
             while True:
-                departement = input("Souhaitez vous afficher la liste des departements (o/n) ? ")                
+                departement = input("Souhaitez vous afficher la liste des departements de la region (o/n) ? ")                
                 if departement == 'o' :
-                    print("Liste des departements de la region ", region_choisie, " : \n", afficher_departements(session, region_choisie))
+                    print("Liste des departements de la region ", region_choisie, " : ")
+                    res, departement_valides = afficher_departements(session, region_choisie)
+                    print(res)
                     break
                 if departement == 'n' :
                     break
 
             departement_choisi = input("Entrez le code du departement : ")
+            while departement_choisi not in departements_valides:
+                departement_choisi = input("Veuillez entre un code valide : ")
             if len(departement_choisi) == 1:
                 departement_choisi = "0" + departement_choisi
-            print(departement_choisi)
-            print("Les annees disponibles sont : ")
             afficher_annees(session, departement_choisi)
-            
+
         elif choix == 4:
             if not region_choisie:
                 print("Veuillez d'abord choisir une region  (choix n°2).")
